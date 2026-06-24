@@ -852,6 +852,15 @@ def should_bypass_proxies(url: str, no_proxy: str | None) -> bool:
 
             for host in no_proxy_hosts:
                 host = host.lstrip(".")
+                if host.startswith("["):
+                    bracket_index = host.find("]")
+                    if bracket_index != -1:
+                        bracketed_host = host[1:bracket_index]
+                        rest = host[bracket_index + 1 :]
+                        if hostname == bracketed_host and (
+                            not rest or rest == f":{parsed.port}"
+                        ):
+                            return True
                 if hostname == host or host_with_port == host:
                     return True
                 host = "." + host

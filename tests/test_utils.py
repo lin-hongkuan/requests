@@ -845,6 +845,20 @@ def test_should_bypass_proxies_no_proxy(url, expected, monkeypatch):
 
 
 @pytest.mark.parametrize(
+    "url, no_proxy, expected",
+    (
+        ("http://[::1]/", "[::1]", True),
+        ("http://[::1]:8080/", "[::1]", True),
+        ("http://[::1]:8080/", "[::1]:8080", True),
+        ("http://[::1]:8080/", "[::1]:9090", False),
+        ("http://[2001:db8::1]/", "[::1]", False),
+    ),
+)
+def test_should_bypass_proxies_no_proxy_bracketed_ipv6(url, no_proxy, expected):
+    assert should_bypass_proxies(url, no_proxy=no_proxy) == expected
+
+
+@pytest.mark.parametrize(
     "url, expected",
     (
         ("http://localhost/", True),
