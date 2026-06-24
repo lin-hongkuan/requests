@@ -540,6 +540,11 @@ def morsel_to_cookie(morsel: Morsel[Any]) -> Cookie:
     elif morsel["expires"]:
         time_template = "%a, %d-%b-%Y %H:%M:%S GMT"
         expires = calendar.timegm(time.strptime(morsel["expires"], time_template))
+
+    rest = {"HttpOnly": morsel["httponly"]}
+    if morsel["samesite"]:
+        rest["SameSite"] = morsel["samesite"]
+
     return create_cookie(
         comment=morsel["comment"],
         comment_url=bool(morsel["comment"]),
@@ -549,7 +554,7 @@ def morsel_to_cookie(morsel: Morsel[Any]) -> Cookie:
         name=morsel.key,
         path=morsel["path"],
         port=None,
-        rest={"HttpOnly": morsel["httponly"]},
+        rest=rest,
         rfc2109=False,
         secure=bool(morsel["secure"]),
         value=morsel.value,

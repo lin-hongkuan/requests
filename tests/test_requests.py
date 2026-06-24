@@ -10,6 +10,7 @@ import re
 import tempfile
 import threading
 import warnings
+from http.cookies import SimpleCookie
 from unittest import mock
 
 import pytest
@@ -2531,6 +2532,36 @@ class TestMorselToCookieMaxAge:
         morsel["max-age"] = "woops"
         with pytest.raises(TypeError):
             morsel_to_cookie(morsel)
+
+
+class TestMorselToCookieAttributes:
+    """Tests for preserving Morsel attributes on converted cookies."""
+
+    def test_samesite_is_preserved(self):
+        morsel = Morsel()
+        morsel["samesite"] = "Lax"
+
+        cookie = morsel_to_cookie(morsel)
+
+        assert cookie._rest["SameSite"] == "Lax"
+
+    def test_samesite_is_omitted_when_unset(self):
+        morsel = Morsel()
+
+        cookie = morsel_to_cookie(morsel)
+
+        assert "SameSite" not in cookie._rest
+
+    def test_cookie_jar_update_preserves_samesite(self):
+        cookies = SimpleCookie()
+        cookies.load("session=abc; HttpOnly; SameSite=Lax")
+
+        jar = requests.cookies.RequestsCookieJar()
+        jar.update(cookies)
+
+        cookie = next(iter(jar))
+        assert cookie.name == "session"
+        assert cookie._rest["SameSite"] == "Lax"
 
 
 class TestTimeout:
